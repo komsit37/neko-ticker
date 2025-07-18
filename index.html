@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEKO-TICKER - Purr-fect Portfolio Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <div id="terminal">
+        <div id="header">
+            <div id="logo">
+  ╱|、          NEKO-TICKER
+ (˚ˎ 。7        Purr-fect Portfolio Tracker
+  |、˜〵      
+  じしˍ,)ノ     v1.0
+            </div>
+            <div id="cat-mood">(=^･ω･^=)</div>
+        </div>
+        
+        <div id="content">
+            <div id="output"></div>
+            <div id="input-line">
+                <span id="prompt">neko@ticker:~$ </span>
+                <input type="text" id="input" autocomplete="off" spellcheck="false">
+                <span id="cursor">█</span>
+            </div>
+        </div>
+        
+        <div id="help-bar">
+            [W]atchlist | [Q]uote | [A]dd | [R]emove | [S]earch | [H]elp | [ESC] Back
+        </div>
+    </div>
+
+    <script src="src/js/storage.js"></script>
+    <script src="src/js/api.js"></script>
+    <script src="src/js/chart.js"></script>
+    <script src="src/js/terminal.js"></script>
+    <script src="src/js/app.js"></script>
+</body>
+</html>
