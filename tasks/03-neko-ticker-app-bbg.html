@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEKO-TICKER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000000;
+            color: #ff9500;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            overflow: hidden;
+        }
+        
+        .terminal {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-rows: 30px 1fr 25px;
+            grid-template-columns: 1fr;
+        }
+        
+        /* Top bar */
+        .top-bar {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid #ff9500;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            justify-content: space-between;
+        }
+        
+        .logo-compact {
+            color: #ffff00;
+            font-weight: bold;
+        }
+        
+        .market-status {
+            display: flex;
+            gap: 20px;
+            font-size: 10px;
+        }
+        
+        .market-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            grid-template-rows: 1fr;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Panels */
+        .panel {
+            border: 1px solid #333;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .left-panel {
+            background-color: #0a0a0a;
+            border-right: 1px solid #ff9500;
+        }
+        
+        .center-panel {
+            background-color: #000;
+            display: grid;
+            grid-template-rows: 200px 1fr;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .right-panel {
+            background-color: #0a0a0a;
+            border-left: 1px solid #ff9500;
+        }
+        
+        /* Bottom command bar */
+        .command-bar {
+            background-color: #1a1a1a;
+            border-top: 1px solid #ff9500;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+        
+        .command-input {
+            background: transparent;
+            border: none;
+            color: #ff9500;
+            font-family: inherit;
+            font-size: 11px;
+            outline: none;
+            flex: 1;
+        }
+        
+        /* Typography */
+        h2 {
+            color: #ffff00;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+        
+        /* Watchlist styles */
+        .watchlist-item {
+            display: grid;
+            grid-template-columns: 20px 60px 70px 80px;
+            gap: 5px;
+            padding: 3px 0;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        .watchlist-item:hover {
+            background-color: #1a1a1a;
+        }
+        
+        .watchlist-item.active {
+            background-color: #333;
+            color: #ffff00;
+        }
+        
+        /* Quote display */
+        .quote-header {
+            background-color: #1a1a1a;
+            padding: 10px;
+            border: 1px solid #333;
+        }
+        
+        .quote-symbol {
+            font-size: 16px;
+            color: #ffff00;
+            font-weight: bold;
+        }
+        
+        .quote-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+        
+        .quote-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .quote-label {
+            color: #888;
+            font-size: 9px;
+        }
+        
+        .quote-value {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        /* Chart area */
+        .chart-container {
+            background-color: #0a0a0a;
+            border: 1px solid #333;
+            padding: 10px;
+            height: 100%;
+            position: relative;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .timeframe-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .timeframe {
+            color: #888;
+            cursor: pointer;
+            padding: 2px 5px;
+        }
+        
+        .timeframe.active {
+            color: #ffff00;
+            background-color: #333;
+        }
+        
+        .ascii-chart {
+            color: #00ff00;
+            font-size: 9px;
+            line-height: 1;
+            white-space: pre;
+            font-family: monospace;
+        }
+        
+        /* News feed */
+        .news-item {
+            border-bottom: 1px solid #222;
+            padding: 5px 0;
+            font-size: 10px;
+        }
+        
+        .news-time {
+            color: #888;
+            font-size: 9px;
+        }
+        
+        .news-headline {
+            color: #ff9500;
+            margin-top: 2px;
+        }
+        
+        .news-source {
+            color: #666;
+            font-size: 9px;
+        }
+        
+        /* Order entry */
+        .order-panel {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .order-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .order-button {
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .buy-button {
+            background-color: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+        
+        .sell-button {
+            background-color: #330000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+        
+        /* Colors */
+        .gain { color: #00ff00; }
+        .loss { color: #ff0000; }
+        .unchanged { color: #ffff00; }
+        
+        /* Function keys */
+        .function-keys {
+            display: flex;
+            gap: 15px;
+            color: #888;
+            font-size: 10px;
+        }
+        
+        .function-key {
+            cursor: pointer;
+        }
+        
+        .function-key:hover {
+            color: #ffff00;
+        }
+        
+        /* Multi-window grid */
+        .multi-window {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 100%;
+        }
+        
+        .window {
+            background-color: #0a0a0a;
+            border: 1px solid #333;
+            padding: 10px;
+            overflow: auto;
+        }
+        
+        /* Market movers */
+        .mover-item {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            gap: 10px;
+            font-size: 10px;
+            padding: 2px 0;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Blinking cursor */
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        /* Heat map style */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            margin-top: 10px;
+        }
+        
+        .heatmap-cell {
+            padding: 5px;
+            text-align: center;
+            font-size: 9px;
+            border: 1px solid #333;
+        }
+        
+        .heat-1 { background-color: #001100; }
+        .heat-2 { background-color: #002200; }
+        .heat-3 { background-color: #003300; }
+        .heat--1 { background-color: #110000; }
+        .heat--2 { background-color: #220000; }
+        .heat--3 { background-color: #330000; }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="logo-compact">(=^･ω･^=) NEKO-TICKER</div>
+            <div class="market-status">
+                <div class="market-indicator">
+                    <span>SPX</span>
+                    <span class="gain">5821.30 +0.82%</span>
+                </div>
+                <div class="market-indicator">
+                    <span>DJI</span>
+                    <span class="gain">42835.21 +0.65%</span>
+                </div>
+                <div class="market-indicator">
+                    <span>IXIC</span>
+                    <span class="loss">18342.10 -0.23%</span>
+                </div>
+                <div class="market-indicator">
+                    <span>VIX</span>
+                    <span class="loss">12.45 -3.21%</span>
+                </div>
+            </div>
+            <div class="function-keys">
+                <span class="function-key">F1:HELP</span>
+                <span class="function-key">F2:NEWS</span>
+                <span class="function-key">F3:CHART</span>
+                <span class="function-key">F4:QUOTE</span>
+                <span class="function-key">F9:TRADE</span>
+            </div>
+        </div>
+        
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Left Panel - Watchlist & Market Movers -->
+            <div class="panel left-panel">
+                <h2>WATCHLIST <span style="font-size: 9px; color: #666;">[MON/PORT1]</span></h2>
+                <div id="watchlist">
+                    <div class="watchlist-item active" data-symbol="AAPL">
+                        <span>1</span>
+                        <span>AAPL</span>
+                        <span>234.30</span>
+                        <span class="gain">+0.93%</span>
+                    </div>
+                    <div class="watchlist-item" data-symbol="MSFT">
+                        <span>2</span>
+                        <span>MSFT</span>
+                        <span>456.78</span>
+                        <span class="loss">-0.45%</span>
+                    </div>
+                    <div class="watchlist-item" data-symbol="GOOGL">
+                        <span>3</span>
+                        <span>GOOGL</span>
+                        <span>178.92</span>
+                        <span class="gain">+1.23%</span>
+                    </div>
+                    <div class="watchlist-item" data-symbol="TSLA">
+                        <span>4</span>
+                        <span>TSLA</span>
+                        <span>245.67</span>
+                        <span class="gain">+2.34%</span>
+                    </div>
+                    <div class="watchlist-item" data-symbol="NVDA">
+                        <span>5</span>
+                        <span>NVDA</span>
+                        <span>132.45</span>
+                        <span class="gain">+3.67%</span>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 20px;">MARKET MOVERS</h2>
+                <div class="mover-item">
+                    <span>SMCI</span>
+                    <span>45.23</span>
+                    <span class="gain">+12.3%</span>
+                </div>
+                <div class="mover-item">
+                    <span>ROKU</span>
+                    <span>62.10</span>
+                    <span class="loss">-8.45%</span>
+                </div>
+                <div class="mover-item">
+                    <span>AMD</span>
+                    <span>165.30</span>
+                    <span class="gain">+5.20%</span>
+                </div>
+                
+                <h2 style="margin-top: 20px;">SECTOR HEAT MAP</h2>
+                <div class="heatmap-grid">
+                    <div class="heatmap-cell heat-3">TECH<br/>+2.1%</div>
+                    <div class="heatmap-cell heat-1">FIN<br/>+0.3%</div>
+                    <div class="heatmap-cell heat--1">ENER<br/>-0.8%</div>
+                    <div class="heatmap-cell heat-2">HEAL<br/>+1.2%</div>
+                    <div class="heatmap-cell heat--2">UTIL<br/>-1.5%</div>
+                </div>
+            </div>
+            
+            <!-- Center Panel - Quote & Chart -->
+            <div class="center-panel">
+                <div>
+                    <div class="quote-header">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <div>
+                                <span class="quote-symbol">AAPL</span>
+                                <span style="color: #888; font-size: 12px;">APPLE INC</span>
+                            </div>
+                            <div style="font-size: 20px;">
+                                <span style="color: #fff;">234.30</span>
+                                <span class="gain" style="font-size: 14px;">+2.15 (+0.93%)</span>
+                            </div>
+                        </div>
+                        <div class="quote-grid">
+                            <div class="quote-item">
+                                <span class="quote-label">BID</span>
+                                <span class="quote-value">234.28</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">ASK</span>
+                                <span class="quote-value">234.32</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">VOL</span>
+                                <span class="quote-value">52.3M</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">OPEN</span>
+                                <span class="quote-value">232.15</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">HIGH</span>
+                                <span class="quote-value">235.40</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">LOW</span>
+                                <span class="quote-value">232.10</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">VWAP</span>
+                                <span class="quote-value">233.85</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">P/E</span>
+                                <span class="quote-value">35.42</span>
+                            </div>
+                            <div class="quote-item">
+                                <span class="quote-label">MCAP</span>
+                                <span class="quote-value">3.2T</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2>INTRADAY CHART</h2>
+                        <div class="timeframe-selector">
+                            <span class="timeframe active">1D</span>
+                            <span class="timeframe">5D</span>
+                            <span class="timeframe">1M</span>
+                            <span class="timeframe">3M</span>
+                            <span class="timeframe">1Y</span>
+                        </div>
+                    </div>
+                    <pre class="ascii-chart">
+    235.50 |                                    ╱╲    
+    235.00 |                                   ╱  ╲   
+    234.50 |                              ╱╲  ╱    ╲  ← NOW: 234.30
+    234.00 |                             ╱  ╲╱      ╲ 
+    233.50 |                        ╱╲  ╱            ╲
+    233.00 |                   ╱╲  ╱  ╲╱              
+    232.50 |              ╱╲  ╱  ╲╱                   
+    232.00 |_________╱╲__╱  ╲╱                        
+           └─────────────────────────────────────────
+            09:30   10:00   10:30   11:00   11:30   12:00
+            
+    Volume ████████▌███▌████████████▌███████▌█████▌
+    </pre>
+                </div>
+            </div>
+            
+            <!-- Right Panel - News & Order Entry -->
+            <div class="panel right-panel">
+                <h2>NEWS <span style="font-size: 9px; color: #666;">[AAPL]</span></h2>
+                <div id="news-feed">
+                    <div class="news-item">
+                        <div class="news-time">11:47 AM</div>
+                        <div class="news-headline">Apple Vision Pro Sales Exceed Expectations in Q4</div>
+                        <div class="news-source">BLOOMBERG</div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-time">10:23 AM</div>
+                        <div class="news-headline">Analysts Raise AAPL Price Target to $250</div>
+                        <div class="news-source">REUTERS</div>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-time">09:45 AM</div>
+                        <div class="news-headline">iPhone 16 Pre-orders Break Records</div>
+                        <div class="news-source">WSJ</div>
+                    </div>
+                </div>
+                
+                <div class="order-panel">
+                    <h2>QUICK ORDER <span style="font-size: 9px; color: #666;">[AAPL]</span></h2>
+                    <div style="margin: 10px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>QTY:</span>
+                            <span style="color: #fff;">100</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>TYPE:</span>
+                            <span style="color: #fff;">MARKET</span>
+                        </div>
+                    </div>
+                    <div class="order-grid">
+                        <div class="order-button buy-button">BUY</div>
+                        <div class="order-button sell-button">SELL</div>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 20px;">DEPTH <span style="font-size: 9px; color: #666;">[LVL2]</span></h2>
+                <div style="font-size: 9px; font-family: monospace;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <div style="color: #666; margin-bottom: 5px;">BIDS</div>
+                            <div>234.28  5,200</div>
+                            <div>234.27  3,100</div>
+                            <div>234.26  8,400</div>
+                            <div>234.25  2,700</div>
+                        </div>
+                        <div>
+                            <div style="color: #666; margin-bottom: 5px;">ASKS</div>
+                            <div>234.32  4,100</div>
+                            <div>234.33  6,200</div>
+                            <div>234.34  3,900</div>
+                            <div>234.35  7,500</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Command Bar -->
+        <div class="command-bar">
+            <span style="color: #888; margin-right: 10px;">NEKO&gt;</span>
+            <input type="text" class="command-input" id="command-input" placeholder="Enter symbol or command..." autofocus>
+            <span class="cursor">_</span>
+        </div>
+    </div>
+    
+    <script>
+        const commandInput = document.getElementById('command-input');
+        const watchlistItems = document.querySelectorAll('.watchlist-item');
+        
+        // Simulated real-time data
+        const stockData = {
+            'AAPL': { price: 234.30, change: 0.93, bid: 234.28, ask: 234.32, volume: '52.3M' },
+            'MSFT': { price: 456.78, change: -0.45, bid: 456.75, ask: 456.80, volume: '23.1M' },
+            'GOOGL': { price: 178.92, change: 1.23, bid: 178.90, ask: 178.94, volume: '18.7M' },
+            'TSLA': { price: 245.67, change: 2.34, bid: 245.65, ask: 245.69, volume: '98.5M' },
+            'NVDA': { price: 132.45, change: 3.67, bid: 132.43, ask: 132.47, volume: '125.2M' }
+        };
+        
+        // Function key handlers
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'F1':
+                    e.preventDefault();
+                    alert('NEKO-TICKER Help\n\nF1: Help\nF2: News\nF3: Chart\nF4: Quote\nF9: Trade\n\n1-9: Select watchlist item\nSymbol: Direct quote lookup\n/, : Search\nESC: Clear');
+                    break;
+                case 'F2':
+                    e.preventDefault();
+                    // Focus news panel
+                    break;
+                case 'F3':
+                    e.preventDefault();
+                    // Focus chart
+                    break;
+                case 'F4':
+                    e.preventDefault();
+                    commandInput.focus();
+                    break;
+                case 'F9':
+                    e.preventDefault();
+                    // Open trade dialog
+                    break;
+            }
+        });
+        
+        // Watchlist navigation
+        watchlistItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                watchlistItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                updateQuoteDisplay(item.dataset.symbol);
+            });
+        });
+        
+        // Command input handler
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim().toUpperCase();
+                
+                if (command >= '1' && command <= '9') {
+                    const index = parseInt(command) - 1;
+                    if (watchlistItems[index]) {
+                        watchlistItems.forEach(i => i.classList.remove('active'));
+                        watchlistItems[index].classList.add('active');
+                        updateQuoteDisplay(watchlistItems[index].dataset.symbol);
+                    }
+                } else if (stockData[command]) {
+                    updateQuoteDisplay(command);
+                }
+                
+                commandInput.value = '';
+            }
+        });
+        
+        function updateQuoteDisplay(symbol) {
+            const data = stockData[symbol];
+            if (!data) return;
+            
+            document.querySelector('.quote-symbol').textContent = symbol;
+            // Update other quote fields...
+        }
+        
+        // Simulate real-time updates
+        setInterval(() => {
+            Object.keys(stockData).forEach(symbol => {
+                const randomChange = (Math.random() - 0.5) * 0.1;
+                stockData[symbol].price += randomChange;
+                stockData[symbol].change += randomChange * 0.01;
+            });
+            // Update display
+        }, 5000);
+        
+        // Initialize
+        updateQuoteDisplay('AAPL');
+    </script>
+</body>
+</html>

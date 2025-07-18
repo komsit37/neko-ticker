@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEKO-TICKER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #00ff88;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            overflow: hidden;
+        }
+        
+        .terminal {
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            color: #ffd93d;
+            white-space: pre;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        
+        .nav {
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        .content {
+            margin-bottom: 20px;
+        }
+        
+        .watchlist-item {
+            padding: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .watchlist-item:hover {
+            background-color: #1a1a1a;
+        }
+        
+        .symbol {
+            color: #00ff88;
+            font-weight: bold;
+            display: inline-block;
+            width: 80px;
+        }
+        
+        .price {
+            color: #fff;
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+        }
+        
+        .change {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+        }
+        
+        .gain {
+            color: #00ff00;
+        }
+        
+        .loss {
+            color: #ff6b6b;
+        }
+        
+        .arrow {
+            font-size: 12px;
+        }
+        
+        .input-line {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            color: #00ff88;
+        }
+        
+        .prompt {
+            margin-right: 10px;
+        }
+        
+        #command-input {
+            background: transparent;
+            border: none;
+            color: #00ff88;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            flex: 1;
+        }
+        
+        .help {
+            color: #666;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .quote-view {
+            display: none;
+        }
+        
+        .quote-header {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .quote-data {
+            display: grid;
+            grid-template-columns: 150px 150px;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .quote-label {
+            color: #888;
+        }
+        
+        .chart {
+            color: #00ff88;
+            font-size: 10px;
+            line-height: 1;
+            margin: 20px 0;
+            white-space: pre;
+        }
+        
+        .status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #ffd93d;
+            font-size: 12px;
+        }
+        
+        .cat-mood {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #ffd93d;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="header">
+            <pre class="logo">  ╱|、          NEKO-TICKER
+ (˚ˎ 。7        Purr-fect Portfolio Tracker
+  |、˜〵      
+  じしˍ,)ノ     v1.0</pre>
+            <div class="nav">[W]atchlist  [Q]uote  [H]elp  [C]lear</div>
+        </div>
+        
+        <div class="content" id="main-content">
+            <div class="watchlist-view" id="watchlist">
+                <h2>WATCHLIST <span style="color: #666; font-size: 12px;">[A]dd [R]emove [S]ort</span></h2>
+                <div style="border-top: 1px solid #333; margin: 10px 0;"></div>
+                
+                <div class="watchlist-item" data-symbol="AAPL">
+                    <span class="symbol">[1] AAPL</span>
+                    <span class="price">$234.30</span>
+                    <span class="change gain">+2.15 (+0.93%) <span class="arrow">▲</span></span>
+                </div>
+                
+                <div class="watchlist-item" data-symbol="MSFT">
+                    <span class="symbol">[2] MSFT</span>
+                    <span class="price">$456.78</span>
+                    <span class="change loss">-2.05 (-0.45%) <span class="arrow">▼</span></span>
+                </div>
+                
+                <div class="watchlist-item" data-symbol="GOOGL">
+                    <span class="symbol">[3] GOOGL</span>
+                    <span class="price">$178.92</span>
+                    <span class="change gain">+2.17 (+1.23%) <span class="arrow">▲</span></span>
+                </div>
+                
+                <div class="watchlist-item" data-symbol="TSLA">
+                    <span class="symbol">[4] TSLA</span>
+                    <span class="price">$245.67</span>
+                    <span class="change gain">+5.61 (+2.34%) <span class="arrow">▲</span></span>
+                </div>
+            </div>
+            
+            <div class="quote-view" id="quote">
+                <h2 class="quote-header">
+                    <span id="quote-symbol">AAPL</span> - <span id="quote-name">Apple Inc.</span>
+                    <span style="color: #666; font-size: 12px; float: right;">[B]ack [W]atch [C]hart</span>
+                </h2>
+                <div style="border-top: 1px solid #333; margin: 10px 0;"></div>
+                
+                <div class="quote-data">
+                    <div><span class="quote-label">Price:</span> <span id="quote-price">$234.30</span></div>
+                    <div><span class="quote-label">Change:</span> <span id="quote-change" class="gain">+2.15 (+0.93%)</span></div>
+                    <div><span class="quote-label">Volume:</span> <span id="quote-volume">52.3M</span></div>
+                    <div><span class="quote-label">Market Cap:</span> <span id="quote-mcap">$3.2T</span></div>
+                    <div><span class="quote-label">Day Range:</span> <span id="quote-range">$232.10 - $235.40</span></div>
+                    <div><span class="quote-label">52W Range:</span> <span id="quote-52w">$164.08 - $237.23</span></div>
+                </div>
+                
+                <pre class="chart" id="ascii-chart"></pre>
+            </div>
+        </div>
+        
+        <div class="help">
+            Navigate: Numbers (1-4), or type symbol • Commands: W, Q, H, C • Press Enter to execute
+        </div>
+        
+        <div class="input-line">
+            <span class="prompt">&gt;</span>
+            <input type="text" id="command-input" autofocus autocomplete="off">
+        </div>
+    </div>
+    
+    <div class="cat-mood" id="cat-mood">(=^･ω･^=)</div>
+    <div class="status" id="status">Ready</div>
+    
+    <script>
+        const commandInput = document.getElementById('command-input');
+        const mainContent = document.getElementById('main-content');
+        const watchlistView = document.getElementById('watchlist');
+        const quoteView = document.getElementById('quote');
+        const catMood = document.getElementById('cat-mood');
+        const status = document.getElementById('status');
+        
+        let currentView = 'watchlist';
+        
+        // Sample data
+        const stockData = {
+            'AAPL': { name: 'Apple Inc.', price: 234.30, change: 2.15, changePercent: 0.93, volume: '52.3M', mcap: '$3.2T', dayRange: '$232.10 - $235.40', range52w: '$164.08 - $237.23' },
+            'MSFT': { name: 'Microsoft Corp.', price: 456.78, change: -2.05, changePercent: -0.45, volume: '23.1M', mcap: '$3.4T', dayRange: '$455.20 - $459.90', range52w: '$330.50 - $460.00' },
+            'GOOGL': { name: 'Alphabet Inc.', price: 178.92, change: 2.17, changePercent: 1.23, volume: '18.7M', mcap: '$2.2T', dayRange: '$176.50 - $179.80', range52w: '$120.20 - $180.50' },
+            'TSLA': { name: 'Tesla Inc.', price: 245.67, change: 5.61, changePercent: 2.34, volume: '98.5M', mcap: '$780B', dayRange: '$238.90 - $248.20', range52w: '$152.30 - $299.90' }
+        };
+        
+        // ASCII chart generator
+        function generateChart() {
+            const chart = `
+    250 |     ╱╲    
+    245 |    ╱  ╲   ╱╲
+    240 |   ╱    ╲_╱  ╲
+    235 |  ╱           ╲__╱
+    230 |_╱
+        └─────────────────────
+         9am  10   11   12   1pm`;
+            return chart;
+        }
+        
+        // Update cat mood based on market
+        function updateCatMood(isGain) {
+            catMood.textContent = isGain ? '(=^-ω-^=)' : '(=；ェ；=)';
+        }
+        
+        // Show quote view
+        function showQuote(symbol) {
+            const stock = stockData[symbol];
+            if (!stock) return;
+            
+            document.getElementById('quote-symbol').textContent = symbol;
+            document.getElementById('quote-name').textContent = stock.name;
+            document.getElementById('quote-price').textContent = `$${stock.price}`;
+            
+            const changeEl = document.getElementById('quote-change');
+            const changeText = `${stock.change > 0 ? '+' : ''}${stock.change} (${stock.change > 0 ? '+' : ''}${stock.changePercent}%)`;
+            changeEl.textContent = changeText;
+            changeEl.className = stock.change > 0 ? 'gain' : 'loss';
+            
+            document.getElementById('quote-volume').textContent = stock.volume;
+            document.getElementById('quote-mcap').textContent = stock.mcap;
+            document.getElementById('quote-range').textContent = stock.dayRange;
+            document.getElementById('quote-52w').textContent = stock.range52w;
+            document.getElementById('ascii-chart').textContent = generateChart();
+            
+            watchlistView.style.display = 'none';
+            quoteView.style.display = 'block';
+            currentView = 'quote';
+            
+            updateCatMood(stock.change > 0);
+            status.textContent = `Viewing ${symbol}`;
+        }
+        
+        // Show watchlist view
+        function showWatchlist() {
+            quoteView.style.display = 'none';
+            watchlistView.style.display = 'block';
+            currentView = 'watchlist';
+            catMood.textContent = '(=^･ω･^=)';
+            status.textContent = 'Ready';
+        }
+        
+        // Handle commands
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim().toUpperCase();
+                commandInput.value = '';
+                
+                // Number navigation
+                if (command >= '1' && command <= '4') {
+                    const items = document.querySelectorAll('.watchlist-item');
+                    const symbol = items[parseInt(command) - 1].dataset.symbol;
+                    showQuote(symbol);
+                }
+                // Commands
+                else if (command === 'W') {
+                    showWatchlist();
+                }
+                else if (command === 'Q') {
+                    const symbol = prompt('Enter symbol:');
+                    if (symbol && stockData[symbol.toUpperCase()]) {
+                        showQuote(symbol.toUpperCase());
+                    }
+                }
+                else if (command === 'B' && currentView === 'quote') {
+                    showWatchlist();
+                }
+                else if (command === 'C') {
+                    console.clear();
+                    status.textContent = 'Screen cleared';
+                }
+                else if (command === 'H') {
+                    alert('NEKO-TICKER Help\n\nCommands:\n1-4: View stock\nW: Watchlist\nQ: Quote lookup\nB: Back\nC: Clear\n\nMeow! 🐱');
+                }
+                // Direct symbol entry
+                else if (stockData[command]) {
+                    showQuote(command);
+                }
+            }
+        });
+        
+        // Click handlers for watchlist items
+        document.querySelectorAll('.watchlist-item').forEach(item => {
+            item.addEventListener('click', () => {
+                showQuote(item.dataset.symbol);
+            });
+        });
+        
+        // Initial view
+        showWatchlist();
+        
+        // Simulate real-time updates
+        setInterval(() => {
+            if (currentView === 'watchlist') {
+                // Randomly update a price
+                const symbols = Object.keys(stockData);
+                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                const randomChange = (Math.random() - 0.5) * 2;
+                stockData[randomSymbol].price += randomChange;
+                stockData[randomSymbol].change += randomChange;
+                
+                // Update display (simplified)
+                status.textContent = `Updated ${randomSymbol}`;
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
